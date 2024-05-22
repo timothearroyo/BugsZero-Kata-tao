@@ -1,7 +1,5 @@
 package com.adaptionsoft.games.uglytrivia
 
-import java.util.LinkedList
-
 class Game {
      var players = mutableListOf<String>()
      var places = IntArray(6)
@@ -17,37 +15,29 @@ class Game {
      var isGettingOutOfPenaltyBox: Boolean = false
 
     val isPlayable: Boolean
-        get() = howManyPlayers() >= 2
+        get() = getPlayersCount() >= 2
 
     init {
         for (i in 0..49) {
-            popQuestions.addLast("Pop Question " + i)
-            scienceQuestions.addLast("Science Question " + i)
-            sportsQuestions.addLast("Sports Question " + i)
-            rockQuestions.addLast(createRockQuestion(i))
+            popQuestions.addLast("Pop Question $i")
+            scienceQuestions.addLast("Science Question $i")
+            sportsQuestions.addLast("Sports Question $i")
+            rockQuestions.addLast("Rock Question $i")
         }
     }
 
-    fun createRockQuestion(index: Int): String {
-        return "Rock Question " + index
-    }
-
-    fun add(playerName: String): Boolean {
-
-
+    fun addPlayer(playerName: String): Boolean {
         players.add(playerName)
-        places[howManyPlayers()] = 0
-        purses[howManyPlayers()] = 0
-        inPenaltyBox[howManyPlayers()] = false
+        places[getPlayersCount()] = 0
+        purses[getPlayersCount()] = 0
+        inPenaltyBox[getPlayersCount()] = false
 
         println(playerName + " was added")
         println("They are player number " + players.size)
         return true
     }
 
-    fun howManyPlayers(): Int {
-        return players.size
-    }
+    fun getPlayersCount(): Int = players.size
 
     fun roll(roll: Int) {
         println(players.get(currentPlayer) + " is the current player")
