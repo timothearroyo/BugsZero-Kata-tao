@@ -2,19 +2,30 @@ package com.adaptionsoft.games.uglytrivia
 
 import java.util.*
 
+enum class QuestionCategory(private val value: String) {
+    POP("Pop"),
+    SCIENCE("Science"),
+    SPORTS("Sports"),
+    ROCK("Rock");
+
+    override fun toString(): String {
+        return value
+    }
+}
+
 class Game(private val rand: Random) {
-     var players = mutableListOf<String>()
-     var places = IntArray(6)
-     var purses = IntArray(6)
-     var inPenaltyBox = BooleanArray(6)
+    var players = mutableListOf<String>()
+    var places = IntArray(6)
+    var purses = IntArray(6)
+    var inPenaltyBox = BooleanArray(6)
 
-     var popQuestions = mutableListOf<String>()
-     var scienceQuestions = mutableListOf<String>()
-     var sportsQuestions = mutableListOf<String>()
-     var rockQuestions = mutableListOf<String>()
+    var popQuestions = mutableListOf<String>()
+    var scienceQuestions = mutableListOf<String>()
+    var sportsQuestions = mutableListOf<String>()
+    var rockQuestions = mutableListOf<String>()
 
-     var currentPlayerIndex = 0
-     var isGettingOutOfPenaltyBox: Boolean = false
+    var currentPlayerIndex = 0
+    var isGettingOutOfPenaltyBox: Boolean = false
 
     val isPlayable: Boolean
         get() = getPlayersCount() >= 2
@@ -48,7 +59,8 @@ class Game(private val rand: Random) {
         println("They have rolled a $roll")
 
         if (canCurrentPlayerMove(roll, currentPlayerName)) {
-            movePlayerAndAskQuestion(roll)
+            moveCurrentPlayer(roll)
+            askQuestion()
         }
     }
 
@@ -75,12 +87,6 @@ class Game(private val rand: Random) {
         return roll
     }
 
-    private fun movePlayerAndAskQuestion(roll: Int) {
-        moveCurrentPlayer(roll)
-
-        askQuestion()
-    }
-
     private fun moveCurrentPlayer(roll: Int) {
         places[currentPlayerIndex] += roll
 
@@ -88,74 +94,63 @@ class Game(private val rand: Random) {
             places[currentPlayerIndex] -= 12
         }
 
-        println(getCurrentPlayerName()
-                + "'s new location is "
-                + places[currentPlayerIndex])
+        println(
+            getCurrentPlayerName()
+                    + "'s new location is "
+                    + places[currentPlayerIndex]
+        )
     }
 
     private fun askQuestion() {
         val currentCategory = currentCategory()
         println("The category is $currentCategory")
-        if (currentCategory === "Pop")
-            println(popQuestions.removeFirst())
-        if (currentCategory === "Science")
-            println(scienceQuestions.removeFirst())
-        if (currentCategory === "Sports")
-            println(sportsQuestions.removeFirst())
-        if (currentCategory === "Rock")
-            println(rockQuestions.removeFirst())
+        when (currentCategory) {
+            QuestionCategory.POP -> println(popQuestions.removeFirst())
+            QuestionCategory.SCIENCE -> println(scienceQuestions.removeFirst())
+            QuestionCategory.SPORTS -> println(sportsQuestions.removeFirst())
+            QuestionCategory.ROCK -> println(rockQuestions.removeFirst())
+        }
     }
 
-
-    private fun currentCategory(): String {
-        if (places[currentPlayerIndex] == 0) return "Pop"
-        if (places[currentPlayerIndex] == 4) return "Pop"
-        if (places[currentPlayerIndex] == 8) return "Pop"
-        if (places[currentPlayerIndex] == 1) return "Science"
-        if (places[currentPlayerIndex] == 5) return "Science"
-        if (places[currentPlayerIndex] == 9) return "Science"
-        if (places[currentPlayerIndex] == 2) return "Sports"
-        if (places[currentPlayerIndex] == 6) return "Sports"
-        return if (places[currentPlayerIndex] == 10) "Sports" else "Rock"
-    }
+    private fun currentCategory(): QuestionCategory =
+        when (places[currentPlayerIndex]) {
+            0, 4, 8 -> QuestionCategory.POP
+            1, 5, 9 -> QuestionCategory.SCIENCE
+            2, 6, 10 -> QuestionCategory.SPORTS
+            else -> QuestionCategory.ROCK
+        }
 
     fun wasCorrectlyAnswered(): Boolean {
         if (inPenaltyBox[currentPlayerIndex]) {
             if (isGettingOutOfPenaltyBox) {
                 println("Answer was correct!!!!")
-                currentPlayerIndex++
-                if (currentPlayerIndex == players.size) currentPlayerIndex = 0
-                purses[currentPlayerIndex]++
-                println(
-                    getCurrentPlayerName()
-                        + " now has "
-                        + purses[currentPlayerIndex]
-                        + " Gold Coins.")
+                nextPlayer()
+                increaseCurrentPlayerPoints()
 
                 return didPlayerWin()
             } else {
-                currentPlayerIndex++
-                if (currentPlayerIndex == players.size) currentPlayerIndex = 0
+                nextPlayer()
                 return true
             }
-
-
         } else {
-
             println("Answer was corrent!!!!")
-            purses[currentPlayerIndex]++
-            println(
-                getCurrentPlayerName()
-                    + " now has "
-                    + purses[currentPlayerIndex]
-                    + " Gold Coins.")
+            increaseCurrentPlayerPoints()
 
             val winner = didPlayerWin()
-            currentPlayerIndex++
-            if (currentPlayerIndex == players.size) currentPlayerIndex = 0
+            nextPlayer()
 
             return winner
         }
+    }
+
+    private fun increaseCurrentPlayerPoints() {
+        purses[currentPlayerIndex]++
+        println(
+            getCurrentPlayerName()
+                    + " now has "
+                    + purses[currentPlayerIndex]
+                    + " Gold Coins."
+        )
     }
 
     fun wrongAnswer(): Boolean {
@@ -163,12 +158,16 @@ class Game(private val rand: Random) {
         println(getCurrentPlayerName() + " was sent to the penalty box")
         inPenaltyBox[currentPlayerIndex] = true
 
-        currentPlayerIndex++
-        if (currentPlayerIndex == players.size) currentPlayerIndex = 0
+        nextPlayer()
         return true
     }
 
-    private fun getCurrentPlayerName() = players.get(currentPlayerIndex)
+    private fun nextPlayer() {
+        currentPlayerIndex++
+        if (currentPlayerIndex == players.size) currentPlayerIndex = 0
+    }
+
+    private fun getCurrentPlayerName() = players[currentPlayerIndex]
 
 
     private fun didPlayerWin(): Boolean {
@@ -179,6 +178,7 @@ class Game(private val rand: Random) {
 fun MutableList<String>.removeFirst(): String {
     return this.removeAt(0)
 }
+
 fun MutableList<String>.addLast(element: String) {
     this.add(element)
 }
