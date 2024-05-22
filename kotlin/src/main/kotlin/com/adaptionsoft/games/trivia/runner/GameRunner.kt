@@ -26,7 +26,7 @@ object GameRunner {
 
         do {
 
-            aGame.roll()
+            aGame.playTurn()
 
             if (rand.nextInt(9) == 7) {
                 notAWinner = aGame.wrongAnswer()

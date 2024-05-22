@@ -41,49 +41,68 @@ class Game(private val rand: Random) {
 
     fun getPlayersCount(): Int = players.size
 
-    fun roll() {
-        val roll = rand.nextInt(5) + 1
+    fun playTurn() {
+        val roll = rollDice()
         val currentPlayerName = getCurrentPlayerName()
         println("$currentPlayerName is the current player")
         println("They have rolled a $roll")
 
+        if (canCurrentPlayerMove(roll, currentPlayerName)) {
+            movePlayerAndAskQuestion(roll)
+        }
+    }
+
+    private fun canCurrentPlayerMove(roll: Int, currentPlayerName: String): Boolean {
         val isCurrentPlayerInPenaltyBox = inPenaltyBox[currentPlayerIndex]
         if (isCurrentPlayerInPenaltyBox) {
             if (roll % 2 != 0) {
                 isGettingOutOfPenaltyBox = true
 
                 println("$currentPlayerName is getting out of the penalty box")
-                movePlayerAndAskQuestion(roll)
+                return true
             } else {
                 println("$currentPlayerName is not getting out of the penalty box")
                 isGettingOutOfPenaltyBox = false
+                return false
             }
         } else {
-            movePlayerAndAskQuestion(roll)
+            return true
         }
+    }
 
+    private fun rollDice(): Int {
+        val roll = rand.nextInt(5) + 1
+        return roll
     }
 
     private fun movePlayerAndAskQuestion(roll: Int) {
-        places[currentPlayerIndex] = places[currentPlayerIndex] + roll
-        if (places[currentPlayerIndex] > 11) places[currentPlayerIndex] = places[currentPlayerIndex] - 12
+        moveCurrentPlayer(roll)
 
-        println(
-            getCurrentPlayerName()
-                + "'s new location is "
-                + places[currentPlayerIndex])
-        println("The category is " + currentCategory())
         askQuestion()
     }
 
+    private fun moveCurrentPlayer(roll: Int) {
+        places[currentPlayerIndex] += roll
+
+        if (places[currentPlayerIndex] > 11) {
+            places[currentPlayerIndex] -= 12
+        }
+
+        println(getCurrentPlayerName()
+                + "'s new location is "
+                + places[currentPlayerIndex])
+    }
+
     private fun askQuestion() {
-        if (currentCategory() === "Pop")
+        val currentCategory = currentCategory()
+        println("The category is $currentCategory")
+        if (currentCategory === "Pop")
             println(popQuestions.removeFirst())
-        if (currentCategory() === "Science")
+        if (currentCategory === "Science")
             println(scienceQuestions.removeFirst())
-        if (currentCategory() === "Sports")
+        if (currentCategory === "Sports")
             println(sportsQuestions.removeFirst())
-        if (currentCategory() === "Rock")
+        if (currentCategory === "Rock")
             println(rockQuestions.removeFirst())
     }
 
