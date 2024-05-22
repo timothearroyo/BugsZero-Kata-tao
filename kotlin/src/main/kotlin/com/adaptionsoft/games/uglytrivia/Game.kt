@@ -27,6 +27,8 @@ class Game(private val rand: Random) {
     var currentPlayerIndex = 0
     var isGettingOutOfPenaltyBox: Boolean = false
 
+    var gameOver: Boolean = false
+
     val isPlayable: Boolean
         get() = getPlayersCount() >= 2
 
@@ -62,7 +64,16 @@ class Game(private val rand: Random) {
             moveCurrentPlayer(roll)
             askQuestion()
         }
+
+        gameOver = if (isWrongAnswer()) {
+            wrongAnswer()
+            false
+        } else {
+            correctAnswer()
+        }
     }
+
+    private fun isWrongAnswer() = rand.nextInt(9) == 7
 
     private fun canCurrentPlayerMove(roll: Int, currentPlayerName: String): Boolean {
         val isCurrentPlayerInPenaltyBox = inPenaltyBox[currentPlayerIndex]
@@ -120,23 +131,23 @@ class Game(private val rand: Random) {
             else -> QuestionCategory.ROCK
         }
 
-    fun wasCorrectlyAnswered(): Boolean {
+    private fun correctAnswer(): Boolean {
         if (inPenaltyBox[currentPlayerIndex]) {
             if (isGettingOutOfPenaltyBox) {
                 println("Answer was correct!!!!")
                 nextPlayer()
                 increaseCurrentPlayerPoints()
 
-                return didPlayerWin()
+                return hasCurrentPlayerWon()
             } else {
                 nextPlayer()
-                return true
+                return false
             }
         } else {
             println("Answer was corrent!!!!")
             increaseCurrentPlayerPoints()
 
-            val winner = didPlayerWin()
+            val winner = hasCurrentPlayerWon()
             nextPlayer()
 
             return winner
@@ -153,13 +164,12 @@ class Game(private val rand: Random) {
         )
     }
 
-    fun wrongAnswer(): Boolean {
+    private fun wrongAnswer() {
         println("Question was incorrectly answered")
         println(getCurrentPlayerName() + " was sent to the penalty box")
         inPenaltyBox[currentPlayerIndex] = true
 
         nextPlayer()
-        return true
     }
 
     private fun nextPlayer() {
@@ -170,8 +180,8 @@ class Game(private val rand: Random) {
     private fun getCurrentPlayerName() = players[currentPlayerIndex]
 
 
-    private fun didPlayerWin(): Boolean {
-        return purses[currentPlayerIndex] != 6
+    private fun hasCurrentPlayerWon(): Boolean {
+        return purses[currentPlayerIndex] == 6
     }
 }
 

@@ -1,13 +1,10 @@
 package com.adaptionsoft.games.trivia.runner
 
-import java.util.Random
-
 import com.adaptionsoft.games.uglytrivia.Game
+import java.util.*
 
 
 object GameRunner {
-
-    private var notAWinner: Boolean = false
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -25,16 +22,7 @@ object GameRunner {
 
 
         do {
-
             aGame.playTurn()
-
-            if (rand.nextInt(9) == 7) {
-                notAWinner = aGame.wrongAnswer()
-            } else {
-                notAWinner = aGame.wasCorrectlyAnswered()
-            }
-
-
-        } while (notAWinner)
+        } while (!aGame.gameOver)
     }
 }
