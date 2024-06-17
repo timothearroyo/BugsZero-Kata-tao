@@ -13,31 +13,30 @@ enum class QuestionCategory(private val value: String) {
     }
 }
 
+data class Question(
+    val category: QuestionCategory,
+    val title: String
+)
+
 class Game(private val rand: Random) {
     var players = mutableListOf<String>()
     var places = IntArray(6)
     var purses = IntArray(6)
     var inPenaltyBox = BooleanArray(6)
 
-    var popQuestions = mutableListOf<String>()
-    var scienceQuestions = mutableListOf<String>()
-    var sportsQuestions = mutableListOf<String>()
-    var rockQuestions = mutableListOf<String>()
+    val questions = mutableListOf<Question>()
 
     var currentPlayerIndex = 0
-    var isGettingOutOfPenaltyBox: Boolean = false
 
     var gameOver: Boolean = false
 
-    val isPlayable: Boolean
-        get() = getPlayersCount() >= 2
-
     init {
+
         for (i in 0..49) {
-            popQuestions.addLast("Pop Question $i")
-            scienceQuestions.addLast("Science Question $i")
-            sportsQuestions.addLast("Sports Question $i")
-            rockQuestions.addLast("Rock Question $i")
+            questions.add(Question(QuestionCategory.POP, "Pop Question $i"))
+            questions.add(Question(QuestionCategory.SCIENCE, "Science Question $i"))
+            questions.add(Question(QuestionCategory.SPORTS, "Sports Question $i"))
+            questions.add(Question(QuestionCategory.ROCK, "Rock Question $i"))
         }
     }
 
@@ -79,13 +78,11 @@ class Game(private val rand: Random) {
     private fun shouldGetOutFromPenaltyBox(currentPlayerName: String, roll: Int) {
         if (isPlayerInPenaltyBox()) {
             if (roll % 2 != 0) {
-                isGettingOutOfPenaltyBox = true
                 inPenaltyBox[currentPlayerIndex] = false
 
                 println("$currentPlayerName is getting out of the penalty box")
             } else {
                 println("$currentPlayerName is not getting out of the penalty box")
-                isGettingOutOfPenaltyBox = false
                 inPenaltyBox[currentPlayerIndex] = true
             }
         }
@@ -116,12 +113,9 @@ class Game(private val rand: Random) {
     private fun askQuestion() {
         val currentCategory = currentCategory()
         println("The category is $currentCategory")
-        when (currentCategory) {
-            QuestionCategory.POP -> println(popQuestions.removeFirst())
-            QuestionCategory.SCIENCE -> println(scienceQuestions.removeFirst())
-            QuestionCategory.SPORTS -> println(sportsQuestions.removeFirst())
-            QuestionCategory.ROCK -> println(rockQuestions.removeFirst())
-        }
+        val question = questions.first { it.category == currentCategory }
+        println(question.title)
+        questions.remove(question)
     }
 
     private fun currentCategory(): QuestionCategory =
