@@ -26,10 +26,10 @@ object GameRunner {
         do {
             aGame.playTurn()
             aGame.nextPlayer()
-        } while (!aGame.gameOver)
+        } while (!aGame.isGameOver())
     }
 
-    fun MutableList<Player>.addPlayer(playerName: String): MutableList<Player>  {
+    private fun MutableList<Player>.addPlayer(playerName: String): MutableList<Player>  {
         val player = Player(name = playerName, place = 0, purse = 0, inPenaltyBox = false)
         add(player)
         println("$playerName was added")

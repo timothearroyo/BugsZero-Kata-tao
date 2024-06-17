@@ -24,17 +24,15 @@ data class Player(
     var place: Int,
     var purse: Int,
     var inPenaltyBox: Boolean,
-) {
-    fun hasWon(): Boolean = purse == 6
-}
+)
 
 class Game(
     private val rand: Random,
-    val players: List<Player>,
+    private val players: List<Player>,
 ) {
-    var currentPlayer: Player = players.first()
-    val questions = mutableListOf<Question>()
-    var gameOver: Boolean = false
+    private var currentPlayer: Player = players.first()
+    private val questions = mutableListOf<Question>()
+    private var gameOver: Boolean = false
 
     init {
 
@@ -52,47 +50,22 @@ class Game(
         val roll = rollDice()
         println("They have rolled a $roll")
 
-        shouldCurrentPlayerGetOutFromPenaltyBox(roll)
+        currentPlayer.shouldGetOutFromPenaltyBox(roll)
 
         if (!currentPlayer.inPenaltyBox) {
-            moveCurrentPlayer(roll)
+            currentPlayer.move(roll)
             askQuestion()
         }
 
-        gameOver =
-            if (isWrongAnswer()) {
-                onWrongAnswer()
-                false
-            } else {
-                onCorrectAnswer()
-            }
+        onQuestionAnswer()
+        gameOver = currentPlayer.hasWon()
     }
 
-    private fun shouldCurrentPlayerGetOutFromPenaltyBox(roll: Int) {
-        if (currentPlayer.inPenaltyBox) {
-            if (roll % 2 != 0) {
-                currentPlayer.inPenaltyBox = false
-                println("${currentPlayer.name} is getting out of the penalty box")
-            } else {
-                currentPlayer.inPenaltyBox = true
-                println("${currentPlayer.name} is not getting out of the penalty box")
-            }
-        }
-    }
+    fun isGameOver(): Boolean = gameOver
 
     private fun isWrongAnswer() = rand.nextInt(9) == 7
 
     private fun rollDice(): Int = rand.nextInt(5) + 1
-
-    private fun moveCurrentPlayer(roll: Int) {
-        currentPlayer.place += roll
-
-        if (currentPlayer.place > 11) {
-            currentPlayer.place -= 12
-        }
-
-        println(currentPlayer.name + "'s new location is " + currentPlayer.place)
-    }
 
     private fun askQuestion() {
         val currentCategory = currentCategory()
@@ -110,24 +83,19 @@ class Game(
             else -> QuestionCategory.ROCK
         }
 
-    private fun onCorrectAnswer(): Boolean {
-        if (currentPlayer.inPenaltyBox) {
-            return false
+    private fun onQuestionAnswer() {
+        if (isWrongAnswer()) {
+            onWrongAnswer()
         } else {
-            println("Answer was correct!!!!")
-            increaseCurrentPlayerPoints()
-            return currentPlayer.hasWon()
+            onCorrectAnswer()
         }
     }
 
-    private fun increaseCurrentPlayerPoints() {
-        currentPlayer.purse++
-        println(
-            currentPlayer.name +
-                " now has " +
-                currentPlayer.purse +
-                " Gold Coins.",
-        )
+    private fun onCorrectAnswer() {
+        if (!currentPlayer.inPenaltyBox) {
+            println("Answer was correct!!!!")
+            currentPlayer.increasePoints()
+        }
     }
 
     private fun onWrongAnswer() {
@@ -139,4 +107,33 @@ class Game(
     fun nextPlayer() {
         currentPlayer = players[(players.indexOf(currentPlayer) + 1) % players.size]
     }
+
+    private fun Player.hasWon(): Boolean = purse == 6
+    private fun Player.increasePoints() = purse++.also {
+        println("$name now has $purse Gold Coins.")
+    }
+
+    private fun Player.move(roll: Int) {
+        place += roll
+
+        if (place > 11) {
+            place -= 12
+        }
+
+        println("$name's new location is $place")
+    }
+
+    private fun Player.shouldGetOutFromPenaltyBox(roll: Int) {
+        if (inPenaltyBox) {
+            if (roll % 2 != 0) {
+                inPenaltyBox = false
+                println("${name} is getting out of the penalty box")
+            } else {
+                inPenaltyBox = true
+                println("${name} is not getting out of the penalty box")
+            }
+        }
+    }
+
 }
+
