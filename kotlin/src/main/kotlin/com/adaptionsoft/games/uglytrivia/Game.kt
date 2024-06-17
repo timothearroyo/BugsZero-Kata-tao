@@ -55,48 +55,49 @@ class Game(private val rand: Random) {
     fun getPlayersCount(): Int = players.size
 
     fun playTurn() {
-        val roll = rollDice()
         val currentPlayerName = getCurrentPlayerName()
         println("$currentPlayerName is the current player")
+
+        val roll = rollDice()
         println("They have rolled a $roll")
 
-        if (canCurrentPlayerMove(roll, currentPlayerName)) {
+        shouldGetOutFromPenaltyBox(currentPlayerName, roll)
+
+        if (!isPlayerInPenaltyBox()) {
             moveCurrentPlayer(roll)
             askQuestion()
         }
 
         gameOver = if (isWrongAnswer()) {
-            wrongAnswer()
+            onWrongAnswer()
             false
         } else {
-            correctAnswer()
+            onCorrectAnswer()
+        }
+    }
+
+    private fun shouldGetOutFromPenaltyBox(currentPlayerName: String, roll: Int) {
+        if (isPlayerInPenaltyBox()) {
+            if (roll % 2 != 0) {
+                isGettingOutOfPenaltyBox = true
+                inPenaltyBox[currentPlayerIndex] = false
+
+                println("$currentPlayerName is getting out of the penalty box")
+            } else {
+                println("$currentPlayerName is not getting out of the penalty box")
+                isGettingOutOfPenaltyBox = false
+                inPenaltyBox[currentPlayerIndex] = true
+            }
         }
     }
 
     private fun isWrongAnswer() = rand.nextInt(9) == 7
 
-    private fun canCurrentPlayerMove(roll: Int, currentPlayerName: String): Boolean {
-        val isCurrentPlayerInPenaltyBox = inPenaltyBox[currentPlayerIndex]
-        if (isCurrentPlayerInPenaltyBox) {
-            if (roll % 2 != 0) {
-                isGettingOutOfPenaltyBox = true
+    private fun isPlayerInPenaltyBox(): Boolean =
+        inPenaltyBox[currentPlayerIndex]
 
-                println("$currentPlayerName is getting out of the penalty box")
-                return true
-            } else {
-                println("$currentPlayerName is not getting out of the penalty box")
-                isGettingOutOfPenaltyBox = false
-                return false
-            }
-        } else {
-            return true
-        }
-    }
-
-    private fun rollDice(): Int {
-        val roll = rand.nextInt(5) + 1
-        return roll
-    }
+    private fun rollDice(): Int =
+        rand.nextInt(5) + 1
 
     private fun moveCurrentPlayer(roll: Int) {
         places[currentPlayerIndex] += roll
@@ -131,26 +132,13 @@ class Game(private val rand: Random) {
             else -> QuestionCategory.ROCK
         }
 
-    private fun correctAnswer(): Boolean {
-        if (inPenaltyBox[currentPlayerIndex]) {
-            if (isGettingOutOfPenaltyBox) {
-                println("Answer was correct!!!!")
-                nextPlayer()
-                increaseCurrentPlayerPoints()
-
-                return hasCurrentPlayerWon()
-            } else {
-                nextPlayer()
-                return false
-            }
+    private fun onCorrectAnswer(): Boolean {
+        if (isPlayerInPenaltyBox()) {
+            return false
         } else {
-            println("Answer was corrent!!!!")
+            println("Answer was correct!!!!")
             increaseCurrentPlayerPoints()
-
-            val winner = hasCurrentPlayerWon()
-            nextPlayer()
-
-            return winner
+            return hasCurrentPlayerWon()
         }
     }
 
@@ -164,31 +152,20 @@ class Game(private val rand: Random) {
         )
     }
 
-    private fun wrongAnswer() {
+    private fun onWrongAnswer() {
         println("Question was incorrectly answered")
         println(getCurrentPlayerName() + " was sent to the penalty box")
         inPenaltyBox[currentPlayerIndex] = true
-
-        nextPlayer()
     }
 
-    private fun nextPlayer() {
+    fun nextPlayer() {
         currentPlayerIndex++
         if (currentPlayerIndex == players.size) currentPlayerIndex = 0
     }
 
     private fun getCurrentPlayerName() = players[currentPlayerIndex]
 
-
     private fun hasCurrentPlayerWon(): Boolean {
         return purses[currentPlayerIndex] == 6
     }
-}
-
-fun MutableList<String>.removeFirst(): String {
-    return this.removeAt(0)
-}
-
-fun MutableList<String>.addLast(element: String) {
-    this.add(element)
 }

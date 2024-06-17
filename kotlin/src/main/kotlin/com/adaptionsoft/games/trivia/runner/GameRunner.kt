@@ -23,6 +23,7 @@ object GameRunner {
 
         do {
             aGame.playTurn()
+            aGame.nextPlayer()
         } while (!aGame.gameOver)
     }
 }
